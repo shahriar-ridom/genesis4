@@ -1,37 +1,40 @@
-name: Genesis App
+name: Deploy Genesis with Pnpm
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
+permissions:
+  contents: write # Needed to allow the bot to push the build to your branch
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Install pnpm specifically
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9  # It's safer to specify a major version
+          version: 9
 
-      # Step 3: Setup Node (and tell it to cache pnpm store)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm' # Crucial for speed!
+          cache: 'pnpm'
 
-      # Step 4: Install dependencies (frozen-lockfile is like npm ci)
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Step 5: Build
       - name: Build the app
         run: pnpm build
+
+      # DEPLOY STEP
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: dist     # ⚠️ IMPORTANT: Check your project! Vite uses 'dist', CRA uses 'build'.
